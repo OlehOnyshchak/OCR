@@ -5,39 +5,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-#np.set_printoptions(threshold='nan')
 INPUT_FILE = './input.jpg'
 OUTPUT_DIR = './segmented/'
 
 #------------------Functions------------------#
-
-def showimages():
-	cv2.namedWindow('Source Image', cv2.WINDOW_AUTOSIZE)
-	cv2.namedWindow('Threshold Image', cv2.WINDOW_AUTOSIZE)
-	cv2.namedWindow('Binary Image', cv2.WINDOW_AUTOSIZE)
-	# cv2.namedWindow('Contour Image', cv2.WINDOW_NORMAL)
-	# cv2.namedWindow('noise_remove Image', cv2.WINDOW_NORMAL)
-
-	cv2.imshow("Source Image", src_img)
-	cv2.imshow("Binary Image", bin_img)
-	cv2.imshow("Threshold Image", final_thr)
-	# cv2.imshow('noise_remove Image', noise_remove)
-
-	# plt.show()
-
-
-def closewindows():
-	k = cv2.waitKey(0)
-	if k & 0xFF == ord('s'):
-		comment = input("Comment:-\n ")
-		cv2.imwrite('./data/test_result/'+comment+'_thres'+'.jpg',final_thr)
-		cv2.imwrite('./data/test_result/'+comment+'_src'+'.jpg',src_img)
-		cv2.imwrite('./data/test_result/'+comment+'_bin'+'.jpg',bin_img)
-		print("Completed")
-	elif k & 0xFF == int(27):
-		cv2.destroyAllWindows()
-	#else:
-	#	closewindows()
 
 def line_array(array):
 	list_x_upper = []
@@ -166,6 +137,7 @@ def get_letter_rect(k, contours):
 		if abs(x1 + w1/2 - (x + w/2)) < 50:
 			if y1 > y:
 				h = abs(y - (y1 + h1))
+				w = abs(x - (x1 + w1))
 			else:
 				valid = False
 			break
@@ -324,15 +296,3 @@ for cnt in contours:
 		
 
 #-------------/Character segmenting-----------# 
-
-
-#-------------Displaying Image----------------#
-
-#showimages()
-
-#-------------/Displaying Image---------------#
-
-
-#-------------Closing Windows-----------------#
-
-#closewindows()
