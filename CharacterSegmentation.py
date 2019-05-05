@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-INPUT_FILE = './input.jpg'
+INPUT_FILE = './input/input.jpg'
 OUTPUT_DIR = './segmented/'
 
 #------------------Functions------------------#
