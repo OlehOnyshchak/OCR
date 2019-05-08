@@ -1,11 +1,11 @@
 # As a skeleton repo https://github.com/dishank-b/Character_Segmentation was used.
 # But here a lot of refactoring, bug-fixing and new functionality was added
-import cv2 
+import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import sys
 
-INPUT_FILE = './input/input.jpg'
 OUTPUT_DIR = './segmented/'
 
 #------------------Functions------------------#
@@ -189,9 +189,13 @@ def letter_seg(lines_img, x_lines, i):
 
 #-------------Thresholding Image--------------#
 
+if len(sys.argv) != 2:
+	print("USAGE: python CharacterSegmentation ImageFilename2Segment") 
+	sys.exit(1)
+
 
 print("\n........Program Initiated.......\n")
-src_img = cv2.imread(INPUT_FILE, cv2.IMREAD_GRAYSCALE)
+src_img = cv2.imread(sys.argv[1], cv2.IMREAD_GRAYSCALE)
 orig_height, orig_width = src_img.shape
 
 print("\n Resizing Image........")
