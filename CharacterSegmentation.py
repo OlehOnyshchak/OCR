@@ -106,9 +106,9 @@ def letter_width(contours):
 	return letter_width_sum/count
 
 
-def end_wrd_dtct(lines, i, bin_img, mean_lttr_width):
-	count_y = np.zeros(shape = width)
-	for x in range(width):
+def end_wrd_dtct(lines, i, bin_img, mean_lttr_width, total_width):
+	count_y = np.zeros(shape = total_width)
+	for x in range(total_width):
 		for y in range(lines[i][0],lines[i][1]):
 			if bin_img[y][x] == 255:
 				count_y[x] += 1
@@ -186,8 +186,6 @@ def letter_seg(lines_img, x_lines, i):
 
 #------------------/Functions-----------------#
 
-# TODO:  remove global var
-width = 1320
 def image_segmentation(filepath):
 	# -------------Thresholding Image--------------#
 	print("\n........Program Initiated.......\n")
@@ -195,6 +193,7 @@ def image_segmentation(filepath):
 	orig_height, orig_width = src_img.shape
 
 	print("\n Resizing Image........")
+	width = 1320
 	height = int(width * orig_height / orig_width)
 	src_img = cv2.resize(src_img, dsize=(width, height), interpolation=cv2.INTER_AREA)
 
@@ -269,7 +268,7 @@ def image_segmentation(filepath):
 	x_lines = []
 
 	for i in range(len(lines_img)):
-		x_lines.append(end_wrd_dtct(lines, i, bin_img, mean_lttr_width))
+		x_lines.append(end_wrd_dtct(lines, i, bin_img, mean_lttr_width, width))
 
 	for i in range(len(x_lines)):
 		x_lines[i].append(width)
