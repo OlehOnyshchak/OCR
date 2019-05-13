@@ -151,7 +151,7 @@ def letter_seg(lines_img, x_lines, i):
 	letter_img = []
 	letter_k = []
 	
-	contours, hierarchy = cv2.findContours(copy_img,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)	
+	_, contours, hierarchy = cv2.findContours(copy_img,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
 	for k in range(len(contours)):
 		cnt = contours[k]
 		if cv2.contourArea(cnt) < 50:
@@ -186,117 +186,109 @@ def letter_seg(lines_img, x_lines, i):
 
 #------------------/Functions-----------------#
 
-
-#-------------Thresholding Image--------------#
-
-if len(sys.argv) != 2:
-	print("USAGE: python CharacterSegmentation ImageFilename2Segment") 
-	sys.exit(1)
-
-
-print("\n........Program Initiated.......\n")
-src_img = cv2.imread(sys.argv[1], cv2.IMREAD_GRAYSCALE)
-orig_height, orig_width = src_img.shape
-
-print("\n Resizing Image........")
+# TODO:  remove global var
 width = 1320
-height = int(width * orig_height / orig_width)
-src_img = cv2.resize(src_img, dsize =(width, height), interpolation = cv2.INTER_AREA)
+def image_segmentation(filepath):
+	# -------------Thresholding Image--------------#
+	print("\n........Program Initiated.......\n")
+	src_img = cv2.imread(filepath, cv2.IMREAD_GRAYSCALE)
+	orig_height, orig_width = src_img.shape
 
-print("#---------Image Info:--------#")
-print("\tHeight =", height, "\n\tWidth =", width)
-print("#----------------------------#")
-print("Applying Adaptive Threshold with kernel :- 21 X 21")
+	print("\n Resizing Image........")
+	height = int(width * orig_height / orig_width)
+	src_img = cv2.resize(src_img, dsize=(width, height), interpolation=cv2.INTER_AREA)
 
-PIXEL_SET = 255
-kernel_size = 21
-normalized_mean = 20
-bin_img = cv2.adaptiveThreshold(src_img, PIXEL_SET, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, kernel_size, normalized_mean)
+	print("#---------Image Info:--------#")
+	print("\tHeight =", height, "\n\tWidth =", width)
+	print("#----------------------------#")
+	print("Applying Adaptive Threshold with kernel :- 21 X 21")
 
-print("Noise Removal From Image.........")
-kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
-final_thr = cv2.morphologyEx(bin_img, cv2.MORPH_CLOSE, kernel)
-contr_retrival = final_thr.copy()
+	PIXEL_SET = 255
+	kernel_size = 21
+	normalized_mean = 20
+	bin_img = cv2.adaptiveThreshold(src_img, PIXEL_SET, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, kernel_size,
+									normalized_mean)
 
-#-------------/Thresholding Image-------------#
+	print("Noise Removal From Image.........")
+	kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+	final_thr = cv2.morphologyEx(bin_img, cv2.MORPH_CLOSE, kernel)
+	contr_retrival = final_thr.copy()
 
+	# -------------/Thresholding Image-------------#
 
-#-------------Line Detection------------------#
-print("Beginning Character Semenation..............")
-count_x = np.zeros(shape = (height))
-for y in range(height):
-	for x in range(width):
-		if bin_img[y][x] == PIXEL_SET:
-			count_x[y] += 1
+	# -------------Line Detection------------------#
+	print("Beginning Character Semenation..............")
+	count_x = np.zeros(shape=(height))
+	for y in range(height):
+		for x in range(width):
+			if bin_img[y][x] == PIXEL_SET:
+				count_x[y] += 1
 
-upper_lines, lower_lines = line_array(count_x)
-upperlines, lowerlines = refine_array(upper_lines, lower_lines)
+	upper_lines, lower_lines = line_array(count_x)
+	upperlines, lowerlines = refine_array(upper_lines, lower_lines)
 
-if len(upperlines) == len(lowerlines):
-	lines = []
-	for y in upperlines:
-		final_thr[y][:] = PIXEL_SET	
-	for y in lowerlines:
-		final_thr[y][:] = PIXEL_SET
-	for y in range(len(upperlines)):
-		lines.append((upperlines[y], lowerlines[y]))	
-else:
-	print("Too much noise in image, unable to process.\nPlease try with another image. Ctrl-C to exit:- ")
-	showimages()
-	k = cv2.waitKey(0)
-	while 1:
+	if len(upperlines) == len(lowerlines):
+		lines = []
+		for y in upperlines:
+			final_thr[y][:] = PIXEL_SET
+		for y in lowerlines:
+			final_thr[y][:] = PIXEL_SET
+		for y in range(len(upperlines)):
+			lines.append((upperlines[y], lowerlines[y]))
+	else:
+		print("Too much noise in image, unable to process.\nPlease try with another image. Ctrl-C to exit:- ")
+		showimages()
 		k = cv2.waitKey(0)
-		if k & 0xFF == ord('q'):
-			cv2.destroyAllWindows()
-			exit()
+		while 1:
+			k = cv2.waitKey(0)
+			if k & 0xFF == ord('q'):
+				cv2.destroyAllWindows()
+				exit()
 
-lines = np.array(lines)
-no_of_lines = len(lines)
-print("\nGiven Text has   # ", no_of_lines, " #   no. of lines")
+	lines = np.array(lines)
+	no_of_lines = len(lines)
+	print("\nGiven Text has   # ", no_of_lines, " #   no. of lines")
 
-lines_img = []
-for i in range(no_of_lines):
-	lines_img.append(bin_img[lines[i][0]:lines[i][1], :])
+	lines_img = []
+	for i in range(no_of_lines):
+		lines_img.append(bin_img[lines[i][0]:lines[i][1], :])
 
-#-------------/Line Detection-----------------#
- 
+	# -------------/Line Detection-----------------#
 
-#-------------Letter Width Calculation--------#
+	# -------------Letter Width Calculation--------#
 
-contours, hierarchy = cv2.findContours(contr_retrival, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-cv2.drawContours(src_img, contours, -1, (0,255,0), 1)
+	_, contours, hierarchy = cv2.findContours(contr_retrival, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+	cv2.drawContours(src_img, contours, -1, (0, 255, 0), 1)
 
-mean_lttr_width = letter_width(contours)
-print("\nAverage Width of Each Letter:- ", mean_lttr_width)
+	mean_lttr_width = letter_width(contours)
+	print("\nAverage Width of Each Letter:- ", mean_lttr_width)
 
-#-------------/Letter Width Calculation-------#
+	# -------------/Letter Width Calculation-------#
 
-#--------------Word Detection-----------------#
-x_lines = []
+	# --------------Word Detection-----------------#
+	x_lines = []
 
-for i in range(len(lines_img)):
-	x_lines.append(end_wrd_dtct(lines, i, bin_img, mean_lttr_width))
+	for i in range(len(lines_img)):
+		x_lines.append(end_wrd_dtct(lines, i, bin_img, mean_lttr_width))
 
-for i in range(len(x_lines)):
-	x_lines[i].append(width)
+	for i in range(len(x_lines)):
+		x_lines[i].append(width)
 
-#-------------/Word Detection-----------------#
+	# -------------/Word Detection-----------------#
 
-#-------------Letter Segmentation-------------#
+	# -------------Letter Segmentation-------------#
 
-for i in range(len(lines)):
-	letter_seg(lines_img, x_lines, i)
+	for i in range(len(lines)):
+		letter_seg(lines_img, x_lines, i)
 
-#------------\Letter Segmentation-------------#
+	# ------------\Letter Segmentation-------------#
 
+	# -------------Character segmenting------------#
 
-#-------------Character segmenting------------#
+	_, contours, hierarchy = cv2.findContours(bin_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+	for cnt in contours:
+		if cv2.contourArea(cnt) > 20:
+			x, y, w, h = cv2.boundingRect(cnt)
+			cv2.rectangle(src_img, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-contours, hierarchy = cv2.findContours(bin_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-for cnt in contours:
-	if cv2.contourArea(cnt) > 20:
-		x,y,w,h = cv2.boundingRect(cnt)
-		cv2.rectangle(src_img,(x,y),(x+w,y+h),(0,255,0),2)
-		
-
-#-------------/Character segmenting-----------# 
+	# -------------/Character segmenting-----------#
