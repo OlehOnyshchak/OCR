@@ -17,3 +17,6 @@ In the root folder, you can see multiple `*.ipynb` and `*.py` files. Below is a 
 * **CharacterSegmentation.py** - python module with realisation of line segmentation functionality. It takes its input from the `input` folder and saves the segmented characters into `segmented` folder.
 * **RecognitionModelTraining.ipynb** - notebook which trains CNN model to parse characters. Trained models are saved under the `model` directory.
 * **Main.ipynb** - notebook with a main pipeline of the project. It orchestrates all modules by firsly segmenting the line into characters, then parsing them, and then converting parsed characters to Latex.
+
+## Detailed Overview
+For project details, please check out supporting [report](https://github.com/OlehOnyshchak/OCR/blob/master/report/ML_Project_Report.pdf)
